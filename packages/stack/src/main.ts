@@ -1,5 +1,7 @@
 import * as THREE from "three"
 
+import { Game } from "./game";
+
 //@ts-ignore
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
@@ -8,49 +10,49 @@ let width = window.innerWidth;
 let height = window.innerHeight;
 
 const renderer = new THREE.WebGLRenderer({
-  canvas: document.getElementById(CANVAS_ID) as HTMLCanvasElement
+  canvas: document.getElementById(CANVAS_ID) as HTMLCanvasElement,
+  antialias: true
 });
 
-renderer.shadowMap.enabled = true;
+// Initialize settings
+const game = new Game({
+  viewport: {
+    width: width,
+    height: height
+  },
+  camera: {
+    near: 0.1,
+    far: 1000
+  }
+});
 
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(
-  75,
-  width/height,
-  0.1,
-  1000
-); 
-
-const controls = new OrbitControls(camera, renderer.domElement);
+const controls = new OrbitControls(game.camera, renderer.domElement);
 controls.update();
 
-const geometry = new THREE.BoxGeometry();
-const material = new THREE.MeshLambertMaterial({color: 0xff00ff});
-const box = new THREE.Mesh(geometry, material);
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-const directionalLight = new THREE.DirectionalLight(0xffffff);
-scene.add(new THREE.AxesHelper(5));
-scene.add(ambientLight);
-scene.add(directionalLight);
-scene.add(box);
-camera.position.set(0,2,5);
-
 window.addEventListener("resize", () => {
-  width = window.innerWidth;
-  height = window.innerHeight;
-  camera.aspect = width/height;
-  camera.updateProjectionMatrix();
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  game.initialCamera({
+    viewport: {
+      width: width,
+      height: height
+    },
+    camera: {
+      near: 0.1,
+      far: 1000
+    }
+  });
+  game.camera.updateProjectionMatrix();
   renderer.setSize(width, height);
 });
 
-renderer.setSize(width, height);
 
-let i = 0.1;
-function gameLoop() { 
-  i += 0.1;
-  box.rotation.x= i ;
+renderer.setSize(width, height);
+function gameLoop() {
   requestAnimationFrame(gameLoop);
-  renderer.render(scene, camera)
+  game.update();
+  controls.update();
+  renderer.render(game.scene, game.camera)
 }
 gameLoop();
 
