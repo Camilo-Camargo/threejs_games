@@ -2,6 +2,8 @@ import * as THREE from "three"
 
 //@ts-ignore
 import Stats from 'stats.js'
+//@ts-ignore
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 
 const stats = new Stats();
 document.body.appendChild(stats.dom);
@@ -33,7 +35,7 @@ const renderer = new THREE.WebGLRenderer({
 
 // Set shadows to the scene
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.VSMShadowMap;
+//renderer.shadowMap.type = THREE.VSMShadowMap;
 
 // Create ambient light that cast light to all the scene.
 scene.add(new THREE.AmbientLight(0x666666));
@@ -70,6 +72,8 @@ ground.rotation.set(Math.PI/-2, 0,0);
 ground.receiveShadow = true;
 scene.add(ground);
 
+const controls = new OrbitControls(camera, renderer.domElement);
+
 
 
 window.addEventListener("resize", () => {
@@ -82,10 +86,16 @@ window.addEventListener("resize", () => {
 
 
 renderer.setSize(width, height);
+let step = 0.04;
 function gameLoop() {
-  box.rotation.x += 0.1;
+  box.rotation.x += 0.01;
+  torusKnot.rotation.x -= 0.01;
+  step += 0.04;
+  box.position.x = 4*(Math.cos(step));
+  box.position.y = 3*(Math.abs(Math.sin(step)));
   requestAnimationFrame(gameLoop);
   stats.update();
+  controls.update();
   renderer.render(scene, camera)
   renderer.setClearColor(0xffffff);
 }
