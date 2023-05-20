@@ -1,5 +1,10 @@
 import * as THREE from "three"
+
 //@ts-ignore
+import Stats from 'stats.js'
+
+const stats = new Stats();
+document.body.appendChild(stats.dom);
 
 const CANVAS_ID = "app";
 let width = window.innerWidth;
@@ -19,7 +24,7 @@ const camera = new THREE.PerspectiveCamera(
   1000
 );
 
-camera.position.set(-3,3,10);
+camera.position.set(3,1,10);
 
 const renderer = new THREE.WebGLRenderer({
   canvas: document.getElementById(CANVAS_ID) as HTMLCanvasElement,
@@ -78,7 +83,9 @@ window.addEventListener("resize", () => {
 
 renderer.setSize(width, height);
 function gameLoop() {
+  box.rotation.x += 0.1;
   requestAnimationFrame(gameLoop);
+  stats.update();
   renderer.render(scene, camera)
   renderer.setClearColor(0xffffff);
 }
