@@ -14,13 +14,14 @@ const props = {
   CubeSpeed: 0.01,
   TorusSpeed: 0.01,
   FogNear: 1,
-  FogFar: 10,
+  FogFar: 50,
 }
 
 gui.add(props, 'CubeSpeed', -0.2, 0.2, 0.01);
 gui.add(props, 'TorusSpeed', -0.2, 0.2, 0.01);
 gui.add(props, 'FogNear', -10, 10, 0.1);
 gui.add(props, 'FogFar', -200, 200, 0.1);
+gui.add(props, 'OverrideMaterial');
 
 const CANVAS_ID = "app";
 let width = window.innerWidth;
@@ -52,7 +53,9 @@ scene.background = null;
 textureLoader.load(
   "./mount-washington-hotel.jpg",
   (loaded) => {
-    scene.background = loaded;
+    //scene.background = loaded;
+    loaded.mapping = THREE.EquirectangularReflectionMapping;
+    scene.environment = loaded;
   }
 )
 
@@ -72,7 +75,10 @@ scene.add(sun);
 
 // Create a box with geometry and material that conform a mesh.
 const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
-const boxMaterial = new THREE.MeshPhongMaterial({ color: 0x000ff });
+const boxWireframe = new THREE.WireframeGeometry(boxGeometry);
+const boxWireframeLineSegments = new THREE.LineSegments(boxWireframe);
+scene.add(boxWireframeLineSegments);
+const boxMaterial = new THREE.MeshLambertMaterial({ color: 0x000ff , transparent: true, opacity: 0.1});
 const box = new THREE.Mesh(boxGeometry, boxMaterial);
 box.position.x = -1;
 box.castShadow = true;
@@ -107,7 +113,8 @@ window.addEventListener("resize", () => {
   renderer.setSize(width, height);
 });
 
-
+// Add the same material to all elements in the scene
+//scene.overrideMaterial = new THREE.MeshNormalMaterial();
 renderer.setSize(width, height);
 let step = 0.04;
 function gameLoop() {
@@ -117,6 +124,8 @@ function gameLoop() {
   step += 0.04;
   box.position.x = 4*(Math.cos(step));
   box.position.y = 3*(Math.abs(Math.sin(step)));
+  boxWireframeLineSegments.position.x = box.position.x;
+  boxWireframeLineSegments.position.y = box.position.y;
   requestAnimationFrame(gameLoop);
   stats.update();
   controls.update();
