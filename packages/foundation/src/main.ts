@@ -4,9 +4,23 @@ import * as THREE from "three"
 import Stats from 'stats.js'
 //@ts-ignore
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import GUI from "lil-gui";
 
 const stats = new Stats();
 document.body.appendChild(stats.dom);
+
+const gui = new GUI();
+const props = {
+  CubeSpeed: 0.01,
+  TorusSpeed: 0.01,
+  FogNear: 1,
+  FogFar: 10,
+}
+
+gui.add(props, 'CubeSpeed', -0.2, 0.2, 0.01);
+gui.add(props, 'TorusSpeed', -0.2, 0.2, 0.01);
+gui.add(props, 'FogNear', -10, 10, 0.1);
+gui.add(props, 'FogFar', -200, 200, 0.1);
 
 const CANVAS_ID = "app";
 let width = window.innerWidth;
@@ -16,7 +30,6 @@ let height = window.innerHeight;
 // Create the scene and edit their properties
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xffffff);
-scene.fog = new THREE.Fog(0xffffff, 0.0025, 50);
 
 // Create the camera and changes their attributes
 const camera = new THREE.PerspectiveCamera(
@@ -26,12 +39,22 @@ const camera = new THREE.PerspectiveCamera(
   1000
 );
 
-camera.position.set(3,1,10);
+camera.position.set(5,5,5);
 
 const renderer = new THREE.WebGLRenderer({
   canvas: document.getElementById(CANVAS_ID) as HTMLCanvasElement,
-  antialias: true
+  antialias: true,
+  //alpha: true
 });
+
+const textureLoader = new THREE.TextureLoader();
+scene.background = null;
+textureLoader.load(
+  "./mount-washington-hotel.jpg",
+  (loaded) => {
+    scene.background = loaded;
+  }
+)
 
 // Set shadows to the scene
 renderer.shadowMap.enabled = true;
@@ -64,10 +87,10 @@ torusKnot.position.x = 2;
 scene.add(torusKnot);
 
 // create a ground plane
-const groundGeometry = new THREE.PlaneGeometry(10000, 10000);
+const groundGeometry = new THREE.PlaneGeometry(10, 10);
 const groundMaterial = new THREE.MeshLambertMaterial({color: 0xffffff});
 const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-ground.position.set(0,-2,0);
+ground.position.set(0,-1,-3);
 ground.rotation.set(Math.PI/-2, 0,0);
 ground.receiveShadow = true;
 scene.add(ground);
@@ -88,8 +111,9 @@ window.addEventListener("resize", () => {
 renderer.setSize(width, height);
 let step = 0.04;
 function gameLoop() {
-  box.rotation.x += 0.01;
-  torusKnot.rotation.x -= 0.01;
+  scene.fog = new THREE.Fog(0xffffff, props.FogNear, props.FogFar);
+  box.rotation.x += props.CubeSpeed;
+  torusKnot.rotation.x -= props.TorusSpeed;
   step += 0.04;
   box.position.x = 4*(Math.cos(step));
   box.position.y = 3*(Math.abs(Math.sin(step)));
